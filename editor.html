@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>可视化编辑器 - 英语学习小站</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* 编辑器工具栏 */
+    .editor-toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 99999;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+
+    .editor-toolbar h1 {
+      color: white;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .toolbar-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s;
+      color: white;
+    }
+
+    .btn-save { background: #4caf50; }
+    .btn-save:hover { background: #43a047; transform: scale(1.05); }
+
+    .btn-preview { background: #2196f3; }
+    .btn-preview:hover { background: #1e88e5; transform: scale(1.05); }
+
+    .btn-data { background: #9c27b0; }
+    .btn-data:hover { background: #8e24aa; transform: scale(1.05); }
+
+    /* 编辑模式指示器 */
+    .edit-mode-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff5722;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 50px;
+      font-weight: 600;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      z-index: 99998;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* 可编辑区域高亮 */
+    .editor-editable {
+      border: 2px dashed transparent !important;
+      transition: all 0.3s !important;
+      cursor: text !important;
+    }
+
+    .editor-editable:hover {
+      border-color: rgba(255, 87, 34, 0.8) !important;
+      background: rgba(255, 87, 34, 0.1) !important;
+    }
+
+    .editor-editable:focus {
+      outline: none !important;
+      border-color: #ff5722 !important;
+      background: rgba(255, 87, 34, 0.15) !important;
+      border-radius: 4px !important;
+    }
+
+    /* 数据面板 */
+    .data-panel {
+      display: none;
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      width: 450px;
+      max-height: calc(100vh - 90px);
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+      z-index: 99997;
+      overflow: hidden;
+    }
+
+    .data-panel.active {
+      display: block;
+    }
+
+    .data-panel-header {
+      background: #f5f7fa;
+      padding: 15px 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .data-panel-header h3 {
+      font-size: 16px;
+      color: #333;
+    }
+
+    .close-panel {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .data-panel-content {
+      padding: 20px;
+      overflow-y: auto;
+      max-height: calc(100vh - 150px);
+    }
+
+    .data-section {
+      margin-bottom: 25px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .data-section h4 {
+      font-size: 14px;
+      color: #ff5722;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #ffebee;
+      position: sticky;
+      top: 0;
+      background: white;
+    }
+
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .item-card {
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .item-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .item-card-title {
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .item-action-btn {
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .btn-edit-item { background: #2196f3; color: white; }
+    .btn-delete-item { background: #f44336; color: white; }
+    .btn-add-item { background: #4caf50; color: white; width: 100%; padding: 10px; margin-top: 10px; }
+
+    /* 模态框 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      width: 500px;
+      max-width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 { font-size: 18px; }
+
+    .modal-body { padding: 20px; }
+
+    .modal-footer {
+      padding: 15px 20px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .form-group { margin-bottom: 15px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: #ff5722;
+      box-shadow: 0 0 0 3px rgba(255,87,34,0.1);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: #4caf50;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 50px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 100001;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* 为原有元素添加可编辑样式 */
+    .home-title, .home-subtitle,
+    .course-title, .course-description,
+    .course-tag,
+    .vocab-word, .vocab-phonetic, .vocab-meaning, .vocab-example,
+    .pattern-english, .pattern-chinese, .pattern-usage,
+    .bilingual-text p, .english-text-container p,
+    .dictation-sentence, .dictation-hint,
+    .page-title, .page-description {
+      cursor: text;
+    }
+  </style>
+</head>
+<body>
+  <!-- 编辑器工具栏 -->
+  <div class="editor-toolbar" id="editorToolbar">
+    <h1>✏️ 可视化编辑器 - 直接在页面上点击文字即可编辑</h1>
+    <div class="toolbar-actions">
+      <button class="toolbar-btn btn-preview" onclick="togglePreview()">👁️ 预览</button>
+      <button class="toolbar-btn btn-data" onclick="toggleDataPanel()">📊 数据管理</button>
+      <button class="toolbar-btn btn-save" onclick="saveAllChanges()">💾 保存更改</button>
+    </div>
+  </div>
+
+  <!-- 编辑模式指示器 -->
+  <div class="edit-mode-indicator" id="editModeIndicator">
+    ✏️ 编辑模式 - 点击文字即可修改
+  </div>
+
+  <!-- 数据面板 -->
+  <div class="data-panel" id="dataPanel">
+    <div class="data-panel-header">
+      <h3 id="panelTitle">课程数据管理</h3>
+      <button class="close-panel" onclick="toggleDataPanel()">×</button>
+    </div>
+    <div class="data-panel-content" id="dataPanelContent">
+      <!-- 动态生成 -->
+    </div>
+  </div>
+
+  <!-- 词汇模态框 -->
+  <div class="modal" id="vocabModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="vocabModalTitle">编辑词汇</h3>
+        <button class="close-panel" onclick="closeModal('vocabModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editVocabIndex">
+        <div class="form-group">
+          <label>单词</label>
+          <input type="text" id="vocabWord">
+        </div>
+        <div class="form-group">
+          <label>音标</label>
+          <input type="text" id="vocabPhonetic">
+        </div>
+        <div class="form-group">
+          <label>中文释义</label>
+          <input type="text" id="vocabMeaning">
+        </div>
+        <div class="form-group">
+          <label>例句</label>
+          <textarea id="vocabExample"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="toolbar-btn" style="background:#e0e0e0;color:#333" onclick="closeModal('vocabModal')">取消</button>
+        <button class="toolbar-btn btn-save" onclick="saveVocab()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 句型模态框 -->
+  <div class="modal" id="patternModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="patternModalTitle">编辑句型</h3>
+        <button class="close-panel" onclick="closeModal('patternModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editPatternIndex">
+        <div class="form-group">
+          <label>英文句型</label>
+          <input type="text" id="patternEnglish">
+        </div>
+        <div class="form-group">
+          <label>中文翻译</label>
+          <input type="text" id="patternChinese">
+        </div>
+        <div class="form-group">
+          <label>使用场景</label>
+          <textarea id="patternUsage"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="toolbar-btn" style="background:#e0e0e0;color:#333" onclick="closeModal('patternModal')">取消</button>
+        <button class="toolbar-btn btn-save" onclick="savePattern()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 听写模态框 -->
+  <div class="modal" id="dictationModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="dictationModalTitle">编辑听写练习</h3>
+        <button class="close-panel" onclick="closeModal('dictationModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editDictationIndex">
+        <div class="form-group">
+          <label>句子（用 ___ 表示填空）</label>
+          <input type="text" id="dictationSentence">
+        </div>
+        <div class="form-group">
+          <label>答案</label>
+          <input type="text" id="dictationAnswer">
+        </div>
+        <div class="form-group">
+          <label>提示</label>
+          <input type="text" id="dictationHint">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="toolbar-btn" style="background:#e0e0e0;color:#333" onclick="closeModal('dictationModal')">取消</button>
+        <button class="toolbar-btn btn-save" onclick="saveDictation()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">保存成功!</div>
+
+  <!-- 原始脚本引用 -->
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+
+  <script>
+    // 全局状态
+    let isPreviewMode = false;
+    let currentEditPath = null;
+
+    // 初始化编辑器
+    setTimeout(() => {
+      initEditor();
+    }, 500);
+
+    function initEditor() {
+      // 给所有可编辑元素添加标记
+      makeElementsEditable();
+
+      // 绑定事件
+      bindEditableEvents();
+
+      console.log('编辑器初始化完成');
+    }
+
+    // 使元素可编辑
+    function makeElementsEditable() {
+      // 首页元素
+      const homeElements = [
+        { selector: '.home-title', path: 'home.title' },
+        { selector: '.home-subtitle', path: 'home.subtitle' },
+        { selector: '.course-title', path: 'course.title' },
+        { selector: '.course-description', path: 'course.description' },
+        { selector: '.course-tag', path: 'course.tag' }
+      ];
+
+      // 学习页面元素
+      const learningElements = [
+        { selector: '.page-title', path: 'page.title' },
+        { selector: '.page-description', path: 'page.description' },
+        { selector: '.vocab-word', path: 'vocab.word' },
+        { selector: '.vocab-phonetic', path: 'vocab.phonetic' },
+        { selector: '.vocab-meaning', path: 'vocab.meaning' },
+        { selector: '.vocab-example', path: 'vocab.example' },
+        { selector: '.pattern-english', path: 'pattern.english' },
+        { selector: '.pattern-chinese', path: 'pattern.chinese' },
+        { selector: '.pattern-usage', path: 'pattern.usage' },
+        { selector: '.bilingual-text p', path: 'bilingual.text' },
+        { selector: '.english-text-container p', path: 'english.text' },
+        { selector: '.dictation-sentence', path: 'dictation.sentence' },
+        { selector: '.dictation-hint', path: 'dictation.hint' }
+      ];
+
+      const allSelectors = [...homeElements, ...learningElements];
+
+      allSelectors.forEach(({ selector, path }) => {
+        document.querySelectorAll(selector).forEach(el => {
+          el.dataset.editorPath = path;
+          el.classList.add('editor-editable');
+          el.contentEditable = 'true';
+        });
+      });
+    }
+
+    // 绑定编辑事件
+    function bindEditableEvents() {
+      document.querySelectorAll('.editor-editable').forEach(el => {
+        el.addEventListener('blur', () => {
+          const path = el.dataset.editorPath;
+          if (path && !isPreviewMode) {
+            console.log('内容已修改:', path, el.innerText);
+          }
+        });
+
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            el.blur();
+          }
+        });
+      });
+    }
+
+    // 切换预览模式
+    function togglePreview() {
+      isPreviewMode = !isPreviewMode;
+      const btn = document.querySelector('.btn-preview');
+      const indicator = document.getElementById('editModeIndicator');
+      const editables = document.querySelectorAll('.editor-editable');
+
+      if (isPreviewMode) {
+        btn.textContent = '✏️ 编辑';
+        indicator.style.display = 'none';
+        editables.forEach(el => {
+          el.contentEditable = 'false';
+          el.style.borderColor = 'transparent';
+        });
+      } else {
+        btn.textContent = '👁️ 预览';
+        indicator.style.display = 'flex';
+        editables.forEach(el => {
+          el.contentEditable = 'true';
+        });
+      }
+    }
+
+    // 切换数据面板
+    function toggleDataPanel() {
+      const panel = document.getElementById('dataPanel');
+      const content = document.getElementById('dataPanelContent');
+
+      if (panel.style.display === 'block') {
+        panel.style.display = 'none';
+        return;
+      }
+
+      // 获取当前课程数据
+      const currentCourse = currentLesson || 'daily';
+      const lesson = allLessons[currentCourse];
+
+      document.getElementById('panelTitle').textContent = `数据管理 - ${currentLesson === 'daily' ? '日常英语' : '雅思英语'}`;
+
+      content.innerHTML = `
+        <div class="data-section">
+          <h4>📚 词汇列表 (${lesson.vocabulary.length}个)</h4>
+          <div class="item-list">
+            ${lesson.vocabulary.map((v, i) => `
+              <div class="item-card">
+                <div class="item-card-header">
+                  <span class="item-card-title">${v.word} - ${v.meaning}</span>
+                  <div class="item-actions">
+                    <button class="item-action-btn btn-edit-item" onclick="openVocabModal(${i})">编辑</button>
+                    <button class="item-action-btn btn-delete-item" onclick="deleteVocab(${i})">删除</button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <button class="toolbar-btn btn-add-item" onclick="openVocabModal(-1)">+ 添加词汇</button>
+        </div>
+
+        <div class="data-section">
+          <h4>✍️ 句型列表 (${lesson.sentencePatterns.length}个)</h4>
+          <div class="item-list">
+            ${lesson.sentencePatterns.map((p, i) => `
+              <div class="item-card">
+                <div class="item-card-header">
+                  <span class="item-card-title">${p.english}</span>
+                  <div class="item-actions">
+                    <button class="item-action-btn btn-edit-item" onclick="openPatternModal(${i})">编辑</button>
+                    <button class="item-action-btn btn-delete-item" onclick="deletePattern(${i})">删除</button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <button class="toolbar-btn btn-add-item" onclick="openPatternModal(-1)">+ 添加句型</button>
+        </div>
+
+        <div class="data-section">
+          <h4>📋 听写练习 (${lesson.dictationExercises.length}个)</h4>
+          <div class="item-list">
+            ${lesson.dictationExercises.map((e, i) => `
+              <div class="item-card">
+                <div class="item-card-header">
+                  <span class="item-card-title" style="font-size:12px">${e.sentence.substring(0, 50)}...</span>
+                  <div class="item-actions">
+                    <button class="item-action-btn btn-edit-item" onclick="openDictationModal(${i})">编辑</button>
+                    <button class="item-action-btn btn-delete-item" onclick="deleteDictation(${i})">删除</button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <button class="toolbar-btn btn-add-item" onclick="openDictationModal(-1)">+ 添加练习</button>
+        </div>
+
+        <div class="data-section">
+          <h4>📖 双语课文</h4>
+          <div class="form-group">
+            <label>英文课文</label>
+            <textarea id="editEnglishText" style="min-height:200px">${lesson.englishText}</textarea>
+          </div>
+          <div class="form-group">
+            <label>中文翻译</label>
+            <textarea id="editChineseText" style="min-height:200px">${lesson.bilingualText.chinese}</textarea>
+          </div>
+          <button class="toolbar-btn btn-save" onclick="saveBilingualText()">保存课文</button>
+        </div>
+      `;
+
+      panel.style.display = 'block';
+    }
+
+    // 词汇操作
+    function openVocabModal(index) {
+      const lesson = allLessons[currentLesson || 'daily'];
+      const modal = document.getElementById('vocabModal');
+      const title = document.getElementById('vocabModalTitle');
+
+      if (index >= 0) {
+        const vocab = lesson.vocabulary[index];
+        document.getElementById('editVocabIndex').value = index;
+        document.getElementById('vocabWord').value = vocab.word;
+        document.getElementById('vocabPhonetic').value = vocab.phonetic;
+        document.getElementById('vocabMeaning').value = vocab.meaning;
+        document.getElementById('vocabExample').value = vocab.example;
+        title.textContent = '编辑词汇';
+      } else {
+        document.getElementById('editVocabIndex').value = '-1';
+        document.getElementById('vocabWord').value = '';
+        document.getElementById('vocabPhonetic').value = '';
+        document.getElementById('vocabMeaning').value = '';
+        document.getElementById('vocabExample').value = '';
+        title.textContent = '添加词汇';
+      }
+
+      modal.classList.add('active');
+    }
+
+    function saveVocab() {
+      const index = parseInt(document.getElementById('editVocabIndex').value);
+      const lesson = allLessons[currentLesson || 'daily'];
+
+      const vocab = {
+        word: document.getElementById('vocabWord').value,
+        phonetic: document.getElementById('vocabPhonetic').value,
+        meaning: document.getElementById('vocabMeaning').value,
+        example: document.getElementById('vocabExample').value
+      };
+
+      if (index >= 0) {
+        lesson.vocabulary[index] = vocab;
+      } else {
+        lesson.vocabulary.push(vocab);
+      }
+
+      closeModal('vocabModal');
+      toggleDataPanel();
+      setTimeout(() => toggleDataPanel(), 100);
+      showToast('保存成功');
+    }
+
+    function deleteVocab(index) {
+      if (confirm('确定删除这个词汇吗？')) {
+        const lesson = allLessons[currentLesson || 'daily'];
+        lesson.vocabulary.splice(index, 1);
+        toggleDataPanel();
+        setTimeout(() => toggleDataPanel(), 100);
+        showToast('已删除');
+      }
+    }
+
+    // 句型操作
+    function openPatternModal(index) {
+      const lesson = allLessons[currentLesson || 'daily'];
+      const modal = document.getElementById('patternModal');
+      const title = document.getElementById('patternModalTitle');
+
+      if (index >= 0) {
+        const pattern = lesson.sentencePatterns[index];
+        document.getElementById('editPatternIndex').value = index;
+        document.getElementById('patternEnglish').value = pattern.english;
+        document.getElementById('patternChinese').value = pattern.chinese;
+        document.getElementById('patternUsage').value = pattern.usage;
+        title.textContent = '编辑句型';
+      } else {
+        document.getElementById('editPatternIndex').value = '-1';
+        document.getElementById('patternEnglish').value = '';
+        document.getElementById('patternChinese').value = '';
+        document.getElementById('patternUsage').value = '';
+        title.textContent = '添加句型';
+      }
+
+      modal.classList.add('active');
+    }
+
+    function savePattern() {
+      const index = parseInt(document.getElementById('editPatternIndex').value);
+      const lesson = allLessons[currentLesson || 'daily'];
+
+      const pattern = {
+        english: document.getElementById('patternEnglish').value,
+        chinese: document.getElementById('patternChinese').value,
+        usage: document.getElementById('patternUsage').value
+      };
+
+      if (index >= 0) {
+        lesson.sentencePatterns[index] = pattern;
+      } else {
+        lesson.sentencePatterns.push(pattern);
+      }
+
+      closeModal('patternModal');
+      toggleDataPanel();
+      setTimeout(() => toggleDataPanel(), 100);
+      showToast('保存成功');
+    }
+
+    function deletePattern(index) {
+      if (confirm('确定删除这个句型吗？')) {
+        const lesson = allLessons[currentLesson || 'daily'];
+        lesson.sentencePatterns.splice(index, 1);
+        toggleDataPanel();
+        setTimeout(() => toggleDataPanel(), 100);
+        showToast('已删除');
+      }
+    }
+
+    // 听写操作
+    function openDictationModal(index) {
+      const lesson = allLessons[currentLesson || 'daily'];
+      const modal = document.getElementById('dictationModal');
+      const title = document.getElementById('dictationModalTitle');
+
+      if (index >= 0) {
+        const ex = lesson.dictationExercises[index];
+        document.getElementById('editDictationIndex').value = index;
+        document.getElementById('dictationSentence').value = ex.sentence;
+        document.getElementById('dictationAnswer').value = ex.answer;
+        document.getElementById('dictationHint').value = ex.hint;
+        title.textContent = '编辑听写练习';
+      } else {
+        document.getElementById('editDictationIndex').value = '-1';
+        document.getElementById('dictationSentence').value = '';
+        document.getElementById('dictationAnswer').value = '';
+        document.getElementById('dictationHint').value = '';
+        title.textContent = '添加听写练习';
+      }
+
+      modal.classList.add('active');
+    }
+
+    function saveDictation() {
+      const index = parseInt(document.getElementById('editDictationIndex').value);
+      const lesson = allLessons[currentLesson || 'daily'];
+
+      const ex = {
+        sentence: document.getElementById('dictationSentence').value,
+        answer: document.getElementById('dictationAnswer').value,
+        hint: document.getElementById('dictationHint').value
+      };
+
+      if (index >= 0) {
+        lesson.dictationExercises[index] = ex;
+      } else {
+        lesson.dictationExercises.push(ex);
+      }
+
+      closeModal('dictationModal');
+      toggleDataPanel();
+      setTimeout(() => toggleDataPanel(), 100);
+      showToast('保存成功');
+    }
+
+    function deleteDictation(index) {
+      if (confirm('确定删除这个练习吗？')) {
+        const lesson = allLessons[currentLesson || 'daily'];
+        lesson.dictationExercises.splice(index, 1);
+        toggleDataPanel();
+        setTimeout(() => toggleDataPanel(), 100);
+        showToast('已删除');
+      }
+    }
+
+    // 保存课文
+    function saveBilingualText() {
+      const lesson = allLessons[currentLesson || 'daily'];
+      lesson.englishText = document.getElementById('editEnglishText').value;
+      lesson.bilingualText.chinese = document.getElementById('editChineseText').value;
+      toggleDataPanel();
+      setTimeout(() => {
+        toggleDataPanel();
+        renderStep(currentStep);
+      }, 100);
+      showToast('课文已保存');
+    }
+
+    // 保存所有更改
+    function saveAllChanges() {
+      // 生成 data.js 文件
+      const dataContent = generateDataJs();
+      const blob = new Blob([dataContent], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'data.js';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast('文件已下载，请覆盖到 js/data.js');
+    }
+
+    // 生成 data.js
+    function generateDataJs() {
+      return `// ============================================
+// 课程 1: 日常英语 - 点餐场景
+// ============================================
+const dailyEnglishLesson = ${JSON.stringify(allLessons.daily, null, 2)};
+
+// ============================================
+// 课程 2: 雅思英语 - 环境话题
+// ============================================
+const ieltsEnglishLesson = ${JSON.stringify(allLessons.ielts, null, 2)};
+
+// 导出课程数据
+const allLessons = {
+  daily: dailyEnglishLesson,
+  ielts: ieltsEnglishLesson
+};`;
+    }
+
+    // 工具函数
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // 监听课程切换
+    const originalSelectCourse = window.selectCourse;
+    window.selectCourse = function(courseId) {
+      currentLesson = courseId;
+      if (originalSelectCourse) originalSelectCourse(courseId);
+      setTimeout(() => {
+        makeElementsEditable();
+        bindEditableEvents();
+      }, 300);
+    };
+
+    // 监听返回主页
+    const originalShowHomePage = window.showHomePage;
+    window.showHomePage = function() {
+      if (originalShowHomePage) originalShowHomePage();
+      setTimeout(() => {
+        makeElementsEditable();
+        bindEditableEvents();
+      }, 300);
+    };
+
+    // 监听步骤切换
+    const originalRenderStep = window.renderStep;
+    window.renderStep = function(stepId) {
+      if (originalRenderStep) originalRenderStep(stepId);
+      setTimeout(() => {
+        makeElementsEditable();
+        bindEditableEvents();
+      }, 300);
+    };
+  </script>
+</body>
+</html>
