@@ -1286,6 +1286,41 @@ body {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  /* 视频播放器适配 */
+  .video-container {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+
+  .video-container video {
+    width: 100%;
+    height: auto;
+    min-height: 200px;
+  }
+
+  /* 音频播放器适配 */
+  .audio-container {
+    padding: 20px 10px;
+  }
+
+  .audio-container audio,
+  .audio-player-section audio {
+    max-width: 100%;
+    height: 48px;
+  }
+
+  /* 媒体控制按钮适配 */
+  .media-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .media-controls .btn {
+    min-width: 100px;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1295,6 +1330,120 @@ body {
 
   .main-content {
     margin-left: 0;
+    padding: 15px 12px;
+  }
+
+  .home-title {
+    font-size: 24px;
+  }
+
+  .home-subtitle {
+    font-size: 14px;
+  }
+
+  .course-grid {
+    grid-template-columns: 1fr;
+    padding: 0 10px;
+  }
+
+  /* 内容卡片内边距减小 */
+  .content-card {
+    padding: 16px;
+  }
+
+  /* 视频播放器全屏适配 */
+  .video-container {
+    border-radius: 6px;
+  }
+
+  .video-container video {
+    min-height: 180px;
+  }
+
+  /* 音频播放器全屏适配 */
+  .audio-container {
+    padding: 15px 8px;
+    background: linear-gradient(135deg, var(--primary-light) 0%, #fff 100%);
+    border-radius: 8px;
+  }
+
+  .audio-container audio,
+  .audio-player-section audio {
+    width: 100%;
+    max-width: none;
+    height: 45px;
+  }
+
+  .audio-player-section {
+    padding: 15px;
+    margin-bottom: 16px;
+  }
+
+  /* 媒体控制按钮小屏幕适配 */
+  .media-controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .media-controls .btn {
+    min-width: 80px;
+    max-width: 120px;
+    flex: 1 1 80px;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  /* 词汇卡片适配 */
+  .vocab-card {
+    padding: 15px;
+  }
+
+  .vocab-word {
+    font-size: 18px;
+  }
+
+  /* 句式卡片适配 */
+  .pattern-card {
+    padding: 15px;
+  }
+
+  .pattern-english {
+    font-size: 16px;
+  }
+
+  /* 双语对照文本适配 */
+  .bilingual-text-scrollable,
+  .english-text-scrollable {
+    padding: 15px;
+    font-size: 14px;
+    max-height: 300px;
+  }
+
+  /* 课程卡片适配 */
+  .course-card.main-module-card,
+  .course-grid .course-card {
+    padding: 20px 15px;
+  }
+
+  .course-card .course-icon {
+    font-size: 48px;
+  }
+
+  .course-card .course-title {
+    font-size: 18px;
+    min-height: auto;
+  }
+
+  .course-card .course-description {
+    font-size: 13px;
+    min-height: auto;
+  }
+
+  .course-card .course-btn {
+    font-size: 14px;
+    padding: 10px 20px;
   }
 }
 
