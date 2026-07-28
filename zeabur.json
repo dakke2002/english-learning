@@ -6,9 +6,9 @@
   },
   "run": {
     "cmd": "node server.js",
-    "port": 3001,
+    "port": 8080,
     "health": {
-      "path": "/api/verify",
+      "path": "/",
       "initialDelaySeconds": 10
     }
   },

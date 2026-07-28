@@ -62,7 +62,6 @@ export function AudioStep({ lesson }: AudioStepProps) {
           onPause={handlePause}
           onEnded={handleEnded}
         >
-          <source src={lesson.media.audio} type="audio/mpeg" />
           <source src={lesson.media.audio} type="video/mp4" />
           您的浏览器不支持音频播放。
         </audio>

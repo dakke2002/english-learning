@@ -18,10 +18,10 @@ RUN npm install --production
 COPY . ./
 
 # 复制前端构建产物到 public 目录
-COPY --from=frontend-builder /app/dist ./public
+COPY --from=frontend-builder /app/dist ./dist
 
 # 暴露端口
-EXPOSE 3001
+EXPOSE 8080
 
 # 启动服务
 CMD ["node", "server.js"]

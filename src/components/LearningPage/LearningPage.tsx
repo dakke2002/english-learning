@@ -67,6 +67,7 @@ export function LearningPage() {
           currentLessonId={courseId}
           onSwitchLesson={handleSwitchLesson}
           lessonList={currentSubCourseList}
+          currentStep={currentStep}
         />
         <StepPanel
           step={currentStep}

@@ -6,9 +6,10 @@ interface CourseInfoBarProps {
   currentLessonId: string;
   onSwitchLesson: (lessonId: string) => void;
   lessonList: SubCourse[];
+  currentStep: number;
 }
 
-export function CourseInfoBar({ lesson, currentLessonId, onSwitchLesson, lessonList }: CourseInfoBarProps) {
+export function CourseInfoBar({ lesson, currentLessonId, onSwitchLesson, lessonList, currentStep }: CourseInfoBarProps) {
   return (
     <div className="course-info-bar">
       <div className="course-current">
@@ -16,6 +17,7 @@ export function CourseInfoBar({ lesson, currentLessonId, onSwitchLesson, lessonL
         <div className="course-current-text">
           <h3>{lesson.title}</h3>
           <p>{lesson.description}</p>
+          <small className="progress-label">{currentStep >= 7 ? 'Course complete' : `Progress · ${currentStep} / 7 steps`}</small>
         </div>
       </div>
       <div className="switch-course">
