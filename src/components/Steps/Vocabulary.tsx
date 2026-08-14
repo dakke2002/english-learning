@@ -1,28 +1,3 @@
-import type { Lesson } from '../../types';
-
-interface VocabularyProps {
-  lesson: Lesson;
-}
-
-export function Vocabulary({ lesson }: VocabularyProps) {
-  return (
-    <div className="content-card">
-      <h2 className="card-title">
-        <span className="card-icon">📚</span>
-        重点词汇
-      </h2>
-      <div className="vocabulary-grid">
-        {lesson.vocabulary.map((vocab, index) => (
-          <div className="vocab-card" key={index}>
-            <div className="vocab-word">{vocab.word}</div>
-            <div className="vocab-phonetic">{vocab.phonetic}</div>
-            <div className="vocab-meaning">{vocab.meaning}</div>
-            <div className="vocab-example">
-              <strong>例句：</strong>{vocab.example}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+import{useState}from'react';import type{Lesson,Vocabulary as Word}from'../../types';import{isSaved,removeWord,saveWord}from'../../utils/vocabularyBook';
+type Definition={partOfSpeech?:string;definition?:string;example?:string};
+export function Vocabulary({lesson}:{lesson:Lesson}){const[,refresh]=useState(0);const[selected,setSelected]=useState<Word|null>(null);const[definitions,setDefinitions]=useState<Definition[]>([]);const[loading,setLoading]=useState(false);const toggleBook=(word:Word)=>{if(isSaved(word.word))removeWord(word.word);else saveWord(word,lesson.id);refresh(v=>v+1)};const lookup=async(word:Word)=>{setSelected(word);setDefinitions([]);setLoading(true);try{const response=await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.word)}`);const data=await response.json();const defs:Definition[]=(data[0]?.meanings||[]).flatMap((m:any)=>(m.definitions||[]).slice(0,2).map((d:any)=>({partOfSpeech:m.partOfSpeech,definition:d.definition,example:d.example})));setDefinitions(defs.slice(0,5))}catch{setDefinitions([])}finally{setLoading(false)}};return <div className="content-card"><h2 className="card-title">重点词汇</h2><p className="section-guidance">浏览本课词汇即可完成今日词汇任务。难词可以加入生词本长期复习。</p><div className="vocabulary-grid">{lesson.vocabulary.map((v,index)=>{const saved=isSaved(v.word);return <div className="vocab-card" key={index}><button className="word-link" onClick={()=>lookup(v)}><span className="vocab-word">{v.word}</span><span className="vocab-phonetic">{v.phonetic}</span></button><div className="vocab-meaning">{v.meaning}</div><div className="vocab-example"><strong>Example: </strong>{v.example}</div><div className="vocab-actions"><button className={saved?'saved':''} onClick={()=>toggleBook(v)}>{saved?'已加入生词本':'+ 加入生词本'}</button></div></div>})}</div>{selected&&<div className="dictionary-overlay" onClick={()=>setSelected(null)}><aside className="dictionary-drawer" onClick={e=>e.stopPropagation()}><button className="drawer-close" onClick={()=>setSelected(null)}>×</button><p className="card-kicker">DICTIONARY</p><h2>{selected.word}</h2><p className="phonetic-large">{selected.phonetic}</p><button className="speak-word" onClick={()=>speechSynthesis.speak(new SpeechSynthesisUtterance(selected.word))}>播放发音</button><div className="course-definition"><b>课程释义</b><p>{selected.meaning}</p><blockquote>{selected.example}</blockquote></div><div className="online-definitions"><b>英英词典</b>{loading?<p>正在查询…</p>:definitions.length?definitions.map((d,i)=><div key={i}><em>{d.partOfSpeech}</em><p>{d.definition}</p>{d.example&&<small>{d.example}</small>}</div>):<p>暂时无法获取在线释义，课程释义仍可正常使用。</p>}</div></aside></div>}</div>}

@@ -1,19 +1,4 @@
-import { useNavigate } from 'react-router-dom';
-import type { SubCourse } from '../../data/courses';
-
-function SubCourseCard({ lesson }: { lesson: SubCourse }) {
-  const navigate = useNavigate();
-  return <article className="course-card" onClick={() => navigate(`/learn?course=${lesson.id}`)}>
-    <div className="course-icon">{lesson.icon}</div><p className="card-kicker">LESSON</p><h2 className="course-title">{lesson.titleEn}</h2>
-    <p className="course-description">{lesson.titleChinese} · {lesson.description}</p>
-    <div className="course-features"><span className="course-tag">{lesson.vocabulary.length} words</span><span className="course-tag">{lesson.sentencePatterns.length} patterns</span><span className="course-tag">Video practice</span><span className="course-tag">Dictation</span></div>
-    <button className="course-btn">Start lesson <span>↗</span></button>
-  </article>;
-}
-
-export function SubCourseList({ subCourses, mainTitle, mainTitleEn }: { subCourses: SubCourse[]; mainTitle: string; mainTitleEn: string }) {
-  const navigate = useNavigate();
-  return <div className="homepage"><header className="site-nav"><div className="brand-mark"><span className="brand-dot" /> LINGUA LAB</div><button className="back-home-btn" onClick={() => navigate('/')}>← Back to paths</button></header>
-    <main className="home-shell"><section className="home-header"><p className="eyebrow">LEARNING PATH</p><h1 className="home-title">{mainTitleEn}</h1><p className="home-subtitle">{mainTitle} · Choose a lesson to begin.</p></section><section className="course-grid">{subCourses.map(lesson => <SubCourseCard key={lesson.id} lesson={lesson} />)}</section></main></div>;
-}
+import{useEffect,useState}from'react';import{useNavigate}from'react-router-dom';import type{SubCourse}from'../../data/courses';import{getLessonMeta}from'../../data/lessonMeta';import{getProgress}from'../../utils/progress';import{lessonOverrides}from'../../data/lessonOverrides';import{advancedLessonOverrides}from'../../data/advancedLessonOverrides';
+function Card({lesson,locked,index}:{lesson:SubCourse;locked:boolean;index:number}){const navigate=useNavigate();const display={...lesson,...lessonOverrides[lesson.id],...advancedLessonOverrides[lesson.id]};const meta=getLessonMeta(lesson.id);const progress=getProgress(lesson.id);const status=progress.completed?'已通关':locked?'未解锁':progress.visited.length?'进行中':'未开始';return <article className={`course-card level-card ${locked?'locked':''}`} onClick={()=>!locked&&navigate(`/learn?course=${lesson.id}`)}><div className="level-status"><span>LEVEL {index+1}</span><b>{status}</b></div><div className="course-icon">{locked?'LOCK':display.icon}</div><p className="card-kicker">LESSON</p><h2 className="course-title">{display.titleEn}</h2><div className="lesson-facts"><span><b>适合水平</b>{meta.level}</span><span><b>预计时间</b>{meta.duration}</span></div><div className="lesson-goal"><b>本课目标</b><p>{meta.objective}</p><b>完成标准</b><p>{meta.outcome}</p></div><div className="course-features">{meta.skills.map(skill=><span className="course-tag" key={skill}>{skill}</span>)}</div><button className="course-btn" disabled={locked}>{locked?'完成上一关后解锁':progress.completed?'再次练习':'开始训练'} <span>→</span></button></article>}
+export function SubCourseList({subCourses,mainTitle,mainTitleEn}:{subCourses:SubCourse[];mainTitle:string;mainTitleEn:string}){const navigate=useNavigate();const[,refresh]=useState(0);useEffect(()=>{const handler=()=>refresh(value=>value+1);window.addEventListener('lesson-progress',handler);return()=>window.removeEventListener('lesson-progress',handler)},[]);return <div className="homepage"><header className="site-nav"><div className="brand-mark"><span className="brand-dot"/> LINGUA LAB</div><button className="back-home-btn" onClick={()=>navigate('/')}>← 返回学习路径</button></header><main className="home-shell"><section className="home-header"><p className="eyebrow">BAND 7 TRAINING PATH</p><h1 className="home-title">{mainTitleEn}</h1><p className="home-subtitle">{mainTitle} · 每课解决一个明确的口语问题；课内步骤可自由选择，听写达到 100% 并完成录音挑战后通关。</p></section><section className="course-grid">{subCourses.map((lesson,index)=><Card key={lesson.id} lesson={lesson} index={index} locked={index>0&&!getProgress(subCourses[index-1].id).completed}/>)}</section></main></div>}
 export default SubCourseList;

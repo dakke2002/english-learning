@@ -57,6 +57,8 @@ export function NoSubtitleVideo({ lesson }: NoSubtitleVideoProps) {
         <video
           ref={videoRef}
           controls
+          playsInline
+          preload="metadata"
           onPlay={handlePlay}
           onPause={handlePause}
           onEnded={handleEnded}

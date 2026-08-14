@@ -21,7 +21,7 @@ function sendFile(req, res, filePath) {
     fs.createReadStream(filePath, { start, end }).pipe(res);
     return;
   }
-  res.writeHead(200, { 'Content-Type': type, 'Content-Length': size, 'Accept-Ranges': 'bytes' });
+  res.writeHead(200, { 'Content-Type': type, 'Content-Length': size, 'Accept-Ranges': 'bytes', 'Cache-Control': type.includes('html') ? 'no-store' : 'public, max-age=300' });
   fs.createReadStream(filePath).pipe(res);
 }
 

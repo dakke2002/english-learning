@@ -2,61 +2,45 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { NavItem } from './NavItem';
 
-const steps = [
-  { id: 1, title: '音频', icon: '🎧' },
-  { id: 2, title: '中英双语字幕', icon: '📺' },
-  { id: 3, title: '重点词汇', icon: '📚' },
-  { id: 4, title: '句式表达', icon: '✍️' },
-  { id: 5, title: '中英文本', icon: '📖' },
-  { id: 6, title: '纯英文本', icon: '📝' },
-  { id: 7, title: '听写填空', icon: '📋' }
+const baseSteps = [
+  { id: 1, title: '盲听训练', icon: '01' },
+  { id: 2, title: '字幕精听', icon: '02' },
+  { id: 3, title: '重点词汇', icon: '03' },
+  { id: 4, title: '回答结构', icon: '04' },
+  { id: 5, title: '双语理解', icon: '05' },
+  { id: 6, title: '英文复述', icon: '06' }
 ];
 
-interface SidebarProps {
+export function Sidebar({
+  currentStep,
+  onStepChange,
+  isIelts
+}: {
   currentStep: number;
   onStepChange: (step: number) => void;
-}
-
-export function Sidebar({ currentStep, onStepChange }: SidebarProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  isIelts: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-
-  const handleSidebarClick = () => {
-    setIsExpanded(!isExpanded);
-  };
-
-  const handleGoHome = () => {
-    // 根据当前课程返回到对应的课程列表页面
-    const currentCourse = searchParams.get('course');
-    if (currentCourse && currentCourse.startsWith('daily-english')) {
-      navigate('/courses/daily-english');
-    } else {
-      navigate('/');
-    }
+  const [params] = useSearchParams();
+  const steps = [...baseSteps, { id: 7, title: isIelts ? '听写检验' : '语境填空', icon: '07' }];
+  const goBack = () => {
+    const id = params.get('course');
+    navigate(id?.startsWith('ielts-') ? '/courses/ielts-english' : '/courses/daily-english');
   };
 
   return (
-    <aside
-      className={`sidebar ${isExpanded ? 'expanded' : ''}`}
-      id="sidebar"
-      onClick={handleSidebarClick}
-    >
-      <div className="sidebar-header" onClick={handleGoHome}>
-        <div className="sidebar-logo">📖</div>
-        <div className="sidebar-logo-text">英语学习小站</div>
+    <aside className={`sidebar ${expanded ? 'expanded' : ''}`}>
+      <div className="sidebar-header" onClick={goBack}>
+        <div className="sidebar-logo">LL</div>
+        <div className="sidebar-logo-text">返回课程</div>
       </div>
-      <nav className="nav-steps" id="navSteps">
-        {steps.map((step) => (
-          <NavItem
-            key={step.id}
-            title={step.title}
-            icon={step.icon}
-            isActive={currentStep === step.id}
-            onClick={() => {
-              onStepChange(step.id);
-            }}
-          />
+      <button className="sidebar-toggle" onClick={() => setExpanded(!expanded)} aria-label="展开学习步骤">
+        {expanded ? '‹' : '›'}
+      </button>
+      <nav className="nav-steps">
+        {steps.map(step => (
+          <NavItem key={step.id} title={step.title} icon={step.icon} isActive={currentStep === step.id} onClick={() => onStepChange(step.id)} />
         ))}
       </nav>
     </aside>

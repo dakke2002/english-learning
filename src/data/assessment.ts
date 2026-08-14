@@ -1,0 +1,10 @@
+export interface AssessmentQuestion { question:string; options:string[]; answer:number; skill:'Vocabulary'|'Grammar'|'Coherence'|'Listening strategy'; explanation:string }
+export const assessmentQuestions:AssessmentQuestion[]=[
+{question:'Choose the most natural answer: “Do you enjoy living in your hometown?”',options:['Yes, I enjoy.','Yes, because it is peaceful and my family lives nearby.','Yes, I am.','I enjoy hometown.'],answer:1,skill:'Coherence',explanation:'选项 B 直接回答并补充原因，信息完整而且自然。'},
+{question:'Complete the sentence: “I have lived here ___ 2018.”',options:['for','since','during','from'],answer:1,skill:'Grammar',explanation:'since 后接时间起点；for 后面应接一段时间，例如 for six years。'},
+{question:'Which phrase is best for adding an example?',options:['For instance,','On the contrary only,','At last time,','By the way of,'],answer:0,skill:'Coherence',explanation:'For instance 表示“例如”，可以自然地引出具体例子。'},
+{question:'Choose the closest meaning of “beneficial”.',options:['harmful','expensive','helpful','temporary'],answer:2,skill:'Vocabulary',explanation:'beneficial 表示“有益的”，最接近 helpful。'},
+{question:'Complete the sentence: “If I had more time, I ___ another language.”',options:['learn','will learn','would learn','learned'],answer:2,skill:'Grammar',explanation:'第二条件句使用 If + 过去式，主句使用 would + 动词原形。'},
+{question:'What should you do first when you miss one word in a listening passage?',options:['Stop listening immediately','Keep listening for the main idea','Translate every previous sentence','Assume the passage is too difficult'],answer:1,skill:'Listening strategy',explanation:'漏听一个词时应继续追踪主旨，停下来回想会错过更多信息。'},
+{question:'Which answer gives a clear opinion and reason?',options:['Maybe, maybe not.','I think public transport should be improved because it reduces traffic.','Public transport is transport.','There are many opinions.'],answer:1,skill:'Coherence',explanation:'选项 B 同时包含明确观点和 because 引导的理由。'},
+{question:'Choose the best replacement for “very important”.',options:['essential','usual','available','similar'],answer:0,skill:'Vocabulary',explanation:'essential 表示“极其重要、必不可少”。'}];

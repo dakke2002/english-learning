@@ -2,25 +2,28 @@ import { useState, useCallback, useMemo } from 'react';
 import type { Lesson } from '../types';
 import { allCourses } from '../data/courses';
 import type { SubCourse } from '../data/courses';
+import { lessonOverrides } from '../data/lessonOverrides';
+import { advancedLessonOverrides } from '../data/advancedLessonOverrides';
 
 // 将所有子课程转换为 Lesson 格式
 function convertToLesson(subCourse: SubCourse): Lesson {
+  const source = { ...subCourse, ...lessonOverrides[subCourse.id], ...advancedLessonOverrides[subCourse.id] } as SubCourse;
   return {
-    id: subCourse.id,
-    title: subCourse.titleEn + (subCourse.titleChinese ? ` - ${subCourse.titleChinese}` : ''),
-    titleChinese: subCourse.titleChinese,
-    description: subCourse.description,
-    icon: subCourse.icon,
+    id: source.id,
+    title: source.titleEn,
+    titleChinese: source.titleChinese,
+    description: source.description,
+    icon: source.icon,
     media: {
-      noSubtitleVideo: subCourse.videoFile,
-      audio: subCourse.videoFile,
-      withSubtitleVideo: subCourse.videoFile
+      noSubtitleVideo: source.videoFile,
+      audio: source.videoFile,
+      withSubtitleVideo: source.videoFile
     },
-    vocabulary: subCourse.vocabulary,
-    sentencePatterns: subCourse.sentencePatterns,
-    bilingualText: subCourse.bilingualText,
-    englishText: subCourse.englishText,
-    dictationExercises: subCourse.dictationExercises
+    vocabulary: source.vocabulary,
+    sentencePatterns: source.sentencePatterns,
+    bilingualText: source.bilingualText,
+    englishText: source.englishText,
+    dictationExercises: source.dictationExercises
   };
 }
 

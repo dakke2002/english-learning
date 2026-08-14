@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import type { SubCourse } from '../data/courses';
 import { allCourses } from '../data/courses';
+import { visitStep } from '../utils/progress';
 
 // 获取所有子课程 ID
 const allSubCourseIds: string[] = allCourses.flatMap((course: { subCourses: SubCourse[] }) =>
@@ -40,6 +41,11 @@ export function useNavigation() {
       if (saved >= 1 && saved <= 8) setCurrentStep(saved);
     }
   }, [searchParams, courseId]);
+
+  useEffect(() => {
+    visitStep(courseId, currentStep);
+    localStorage.setItem('lingua:last-learning', JSON.stringify({ courseId, step: currentStep }));
+  }, [courseId, currentStep]);
 
   return {
     currentStep,

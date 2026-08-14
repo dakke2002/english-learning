@@ -1,25 +1,2 @@
 import type { Lesson } from '../../types';
-
-interface SentencePatternsProps {
-  lesson: Lesson;
-}
-
-export function SentencePatterns({ lesson }: SentencePatternsProps) {
-  return (
-    <div className="content-card">
-      <h2 className="card-title">
-        <span className="card-icon">✍️</span>
-        句式表达
-      </h2>
-      <div className="pattern-list">
-        {lesson.sentencePatterns.map((pattern, index) => (
-          <div className="pattern-card" key={index}>
-            <div className="pattern-english">{pattern.english}</div>
-            <div className="pattern-chinese">{pattern.chinese}</div>
-            <div className="pattern-usage">{pattern.usage}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+export function SentencePatterns({lesson}:{lesson:Lesson}){return <div className="content-card"><h2 className="card-title">回答结构与表达</h2><p className="section-guidance">朗读表达，再替换关键词造一个与你自己有关的句子。</p><div className="pattern-list">{lesson.sentencePatterns.map((p,index)=><div className="pattern-card" key={index}><div className="pattern-english">{p.english}</div><div className="pattern-chinese">{p.chinese}</div><div className="pattern-usage">使用场景：{p.usage}</div></div>)}</div></div>}

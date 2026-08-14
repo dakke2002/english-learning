@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sidebar } from '../Sidebar';
 import { CourseInfoBar } from './CourseInfoBar';
@@ -6,6 +6,9 @@ import { StepPanel } from '../Steps/StepPanel';
 import { useLesson, useNavigation, useKeyboardShortcuts } from '../../hooks';
 import { allCourses } from '../../data/courses';
 import type { SubCourse } from '../../data/courses';
+import { CompletionReport } from './CompletionReport';
+import { StepNavigator } from './StepNavigator';
+import { getProgress } from '../../utils/progress';
 
 // 将所有子课程展平为一个列表，用于下拉菜单切换
 const allSubCourses: SubCourse[] = allCourses.flatMap(course => course.subCourses);
@@ -15,6 +18,14 @@ export function LearningPage() {
   const [searchParams] = useSearchParams();
   const { currentLesson, setLesson, switchLesson } = useLesson();
   const { currentStep, goToStep, courseId } = useNavigation();
+  const [visitedSteps, setVisitedSteps] = useState<number[]>([]);
+
+  useEffect(() => {
+    const refresh = () => setVisitedSteps(getProgress(courseId).visited);
+    refresh();
+    window.addEventListener('lesson-progress', refresh);
+    return () => window.removeEventListener('lesson-progress', refresh);
+  }, [courseId]);
 
   // 根据当前课程 ID 获取所属的主课程，然后只获取该主课程下的子课程
   const currentSubCourseList = useMemo(() => {
@@ -58,9 +69,11 @@ export function LearningPage() {
     return <div>Loading...</div>;
   }
 
+  const isIelts = currentLesson.id.startsWith('ielts-speaking-');
+
   return (
     <div className="container">
-      <Sidebar currentStep={currentStep} onStepChange={goToStep} />
+      <Sidebar currentStep={currentStep} onStepChange={goToStep} isIelts={isIelts} />
       <main className="main-content" id="mainContent">
         <CourseInfoBar
           lesson={currentLesson}
@@ -69,10 +82,12 @@ export function LearningPage() {
           lessonList={currentSubCourseList}
           currentStep={currentStep}
         />
+        <StepNavigator current={currentStep} visited={visitedSteps} onChange={goToStep} isIelts={isIelts} />
         <StepPanel
           step={currentStep}
           lesson={currentLesson}
         />
+        <CompletionReport lessonId={currentLesson.id} />
       </main>
     </div>
   );

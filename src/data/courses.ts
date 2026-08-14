@@ -1091,4 +1091,8 @@ Thank you for following this training series. Good luck with your IELTS exam, an
 };
 
 // 导出所有课程
+// 雅思学习顺序：Part 1 → Part 2（人物）→ Part 2（地点）→ Part 3 → 完整模拟
+const ieltsLearningOrder = ['ielts-speaking-02', 'ielts-speaking-01', 'ielts-speaking-03', 'ielts-speaking-04', 'ielts-speaking-05'];
+ieltsEnglishCourse.subCourses.sort((a, b) => ieltsLearningOrder.indexOf(a.id) - ieltsLearningOrder.indexOf(b.id));
+
 export const allCourses: CourseCategory[] = [dailyEnglishCourse, ieltsEnglishCourse];
