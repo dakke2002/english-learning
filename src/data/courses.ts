@@ -1095,4 +1095,38 @@ Thank you for following this training series. Good luck with your IELTS exam, an
 const ieltsLearningOrder = ['ielts-speaking-02', 'ielts-speaking-01', 'ielts-speaking-03', 'ielts-speaking-04', 'ielts-speaking-05'];
 ieltsEnglishCourse.subCourses.sort((a, b) => ieltsLearningOrder.indexOf(a.id) - ieltsLearningOrder.indexOf(b.id));
 
+// Long-term IELTS path: keep the original five lessons as the foundation, then add
+// progressively harder modules so the course can grow without changing the player.
+const ieltsExpansion = [
+  ['ielts-speaking-06', 'Part 1: Sound Natural and Personal', 'Part 1 自然回答与个人细节', '把答案从模板句变成真实、连贯的个人表达。'],
+  ['ielts-speaking-07', 'Part 1: Past, Present and Future', 'Part 1 时态切换', '练习过去经历、当前习惯和未来计划的自然切换。'],
+  ['ielts-speaking-08', 'Part 2: Describe an Object', 'Part 2 物品描述', '用来源、外观、使用场景和情感价值组织物品题。'],
+  ['ielts-speaking-09', 'Part 2: Describe an Experience', 'Part 2 经历叙事', '用时间线、转折和结果讲清一段真实经历。'],
+  ['ielts-speaking-10', 'Part 2: Describe a Change', 'Part 2 变化类话题', '练习过去与现在对比，并解释变化带来的影响。'],
+  ['ielts-speaking-11', 'Part 3: Compare and Evaluate', 'Part 3 比较与评价', '从个人例子上升到群体、社会和长期影响。'],
+  ['ielts-speaking-12', 'Part 3: Causes and Consequences', 'Part 3 原因与影响', '建立原因、结果、例证和限制条件的逻辑链。'],
+  ['ielts-speaking-13', 'Part 3: Problems and Solutions', 'Part 3 问题与方案', '针对社会问题提出可执行、有限度的解决方案。'],
+  ['ielts-speaking-14', 'Mock Test 02: Timing and Recovery', '模考二：节奏与修复', '在限时状态下练习停顿、改述和保持流利度。'],
+  ['ielts-speaking-15', 'Band 7 Review: Personal Error Bank', 'Band 7 复盘：个人错误库', '根据词汇、语法、流利度和发音问题制定下一轮训练。']
+] as const;
+
+const expansionSource = ieltsEnglishCourse.subCourses.find(lesson => lesson.id === 'ielts-speaking-05')!;
+for (const [id, titleEn, titleChinese, description] of ieltsExpansion) {
+  ieltsEnglishCourse.subCourses.push({
+    ...expansionSource,
+    id,
+    title: titleChinese,
+    titleEn,
+    titleChinese,
+    description,
+    englishText: `${titleEn}\n\n${description}\n\nUse the TS+SD method: answer directly, explain the reason, add a specific example, and finish with a clear result or reflection. Record yourself for 60 to 120 seconds and review one improvement point.`,
+  });
+}
+ieltsEnglishCourse.subCourses.forEach((lesson) => {
+  if (lesson.id.startsWith('ielts-speaking-') && !ieltsLearningOrder.includes(lesson.id)) {
+    ieltsLearningOrder.push(lesson.id);
+  }
+});
+ieltsEnglishCourse.subCourses.sort((a, b) => ieltsLearningOrder.indexOf(a.id) - ieltsLearningOrder.indexOf(b.id));
+
 export const allCourses: CourseCategory[] = [dailyEnglishCourse, ieltsEnglishCourse];
