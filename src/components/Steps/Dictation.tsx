@@ -21,7 +21,7 @@ function SentencePlayer({ lesson, index }: { lesson: Lesson; index: number }) {
 export function Dictation({ lesson }: { lesson: Lesson }) {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [checked, setChecked] = useState(false);
-  const audioMode = lesson.id.startsWith('ielts-speaking-');
+  const audioMode = new Set(['ielts-speaking-01', 'ielts-speaking-02', 'ielts-speaking-03', 'ielts-speaking-04', 'ielts-speaking-05']).has(lesson.id);
   const correct = lesson.dictationExercises.filter((exercise, index) => (answers[index] || '').trim().toLowerCase() === exercise.answer.toLowerCase()).length;
   const percent = Math.round(correct / lesson.dictationExercises.length * 100);
   const check = () => { setChecked(true); updateProgress(lesson.id, { dictationScore: percent }); };
